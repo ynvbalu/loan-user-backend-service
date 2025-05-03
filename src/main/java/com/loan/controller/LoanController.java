@@ -64,7 +64,7 @@ public class LoanController {
     }
 
     @PostMapping("/transfer")
-    @Operation(summary = "Transfer all loans from one user to another")
+    @Operation(summary = "Transfer loans from one user to another. If loanIds is not provided, transfers all loans from the source user.")
     public ResponseEntity<Void> transferLoans(@Valid @RequestBody LoanTransferDTO transferDTO) {
         loanService.transferLoans(transferDTO);
         return ResponseEntity.ok().build();

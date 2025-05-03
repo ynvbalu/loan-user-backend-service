@@ -105,13 +105,27 @@ public class LoanServiceImpl implements LoanService {
         User toUser = userRepository.findByUsername(transferDTO.getToUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Target user not found with username: " + transferDTO.getToUsername()));
         
-        List<Loan> fromUserLoans = loanRepository.findByUserId(fromUser.getId());
-        if (fromUserLoans.isEmpty()) {
-            throw new IllegalStateException("No loans found for user: " + transferDTO.getFromUsername());
+        List<Loan> loansToTransfer;
+        if (transferDTO.getLoanIds() != null && !transferDTO.getLoanIds().isEmpty()) {
+            // Transfer specific loans
+            loansToTransfer = loanRepository.findAllById(transferDTO.getLoanIds());
+            
+            // Verify all loans belong to the source user
+            loansToTransfer.forEach(loan -> {
+                if (!loan.getUser().getId().equals(fromUser.getId())) {
+                    throw new IllegalStateException("Loan with ID " + loan.getId() + " does not belong to user: " + transferDTO.getFromUsername());
+                }
+            });
+        } else {
+            // Transfer all loans
+            loansToTransfer = loanRepository.findByUserId(fromUser.getId());
+            if (loansToTransfer.isEmpty()) {
+                throw new IllegalStateException("No loans found for user: " + transferDTO.getFromUsername());
+            }
         }
         
-        fromUserLoans.forEach(loan -> loan.setUser(toUser));
-        loanRepository.saveAll(fromUserLoans);
+        loansToTransfer.forEach(loan -> loan.setUser(toUser));
+        loanRepository.saveAll(loansToTransfer);
     }
 
     private LoanDTO convertToDTO(Loan loan) {
