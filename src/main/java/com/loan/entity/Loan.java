@@ -3,7 +3,7 @@ package com.loan.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -26,15 +26,29 @@ public class Loan {
     private Integer term;
 
     @Column(nullable = false)
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LoanStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.loanNumber == null) {
+            this.loanNumber = generateLoanNumber();
+        }
+        if (this.startDate == null) {
+            this.startDate = LocalDateTime.now();
+        }
+    }
+
+    private String generateLoanNumber() {
+        return "LOAN-" + System.currentTimeMillis();
+    }
 
     public enum LoanStatus {
         ACTIVE, CLOSED, PENDING

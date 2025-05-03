@@ -5,27 +5,30 @@ import com.loan.entity.User;
 import com.loan.repository.LoanRepository;
 import com.loan.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@Configuration
-@RequiredArgsConstructor
-@Profile("!test")
+@Component
 public class DataInitializer {
-    private final UserRepository userRepository;
-    private final LoanRepository loanRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private LoanRepository loanRepository;
+
     private final Random random = new Random();
 
     @PostConstruct
     public void init() {
-        // Create 10 sample users
+        // Create sample users
         List<User> users = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
             User user = new User();
@@ -39,19 +42,21 @@ public class DataInitializer {
         }
         userRepository.saveAll(users);
 
-        // Create 10 loans for each user
+        // Create sample loans
+        List<Loan> loans = new ArrayList<>();
         for (User user : users) {
             for (int i = 1; i <= 10; i++) {
                 Loan loan = new Loan();
                 loan.setLoanNumber("LOAN-" + user.getId() + "-" + i);
-                loan.setAmount(new BigDecimal(random.nextInt(100000) + 1000));
-                loan.setInterestRate(new BigDecimal(random.nextDouble(10) + 1));
-                loan.setTerm(random.nextInt(36) + 12);
-                loan.setStartDate(LocalDate.now().minusDays(random.nextInt(365)));
+                loan.setAmount(new BigDecimal(random.nextDouble() * 100000).setScale(2, RoundingMode.HALF_UP));
+                loan.setInterestRate(new BigDecimal(random.nextDouble() * 10).setScale(2, RoundingMode.HALF_UP));
+                loan.setTerm(random.nextInt(36) + 12); // 12-48 months
+                loan.setStartDate(LocalDateTime.now().minusMonths(random.nextInt(24)));
                 loan.setStatus(Loan.LoanStatus.values()[random.nextInt(Loan.LoanStatus.values().length)]);
                 loan.setUser(user);
-                loanRepository.save(loan);
+                loans.add(loan);
             }
         }
+        loanRepository.saveAll(loans);
     }
 } 

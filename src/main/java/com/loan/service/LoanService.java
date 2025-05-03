@@ -1,6 +1,7 @@
 package com.loan.service;
 
 import com.loan.dto.LoanDTO;
+import com.loan.dto.LoanTransferDTO;
 import java.util.List;
 
 public interface LoanService {
@@ -10,7 +11,7 @@ public interface LoanService {
     List<LoanDTO> getLoansByUserId(Long userId);
     LoanDTO updateLoan(Long id, LoanDTO loanDTO);
     void deleteLoan(Long id);
-    long countLoans();
+    Long countLoans();
     boolean existsById(Long id);
-    void transferLoans(String fromUsername, String toUsername);
+    void transferLoans(LoanTransferDTO transferDTO);
 } 

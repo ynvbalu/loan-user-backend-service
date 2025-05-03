@@ -1,13 +1,14 @@
 package com.loan.service.impl;
 
 import com.loan.dto.LoanDTO;
+import com.loan.dto.LoanTransferDTO;
 import com.loan.entity.Loan;
 import com.loan.entity.User;
 import com.loan.repository.LoanRepository;
 import com.loan.repository.UserRepository;
 import com.loan.service.LoanService;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,33 +16,32 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Transactional
 public class LoanServiceImpl implements LoanService {
-    private final LoanRepository loanRepository;
-    private final UserRepository userRepository;
+
+    @Autowired
+    private LoanRepository loanRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
+    @Transactional
     public LoanDTO createLoan(LoanDTO loanDTO) {
         User user = userRepository.findById(loanDTO.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + loanDTO.getUserId()));
         
         Loan loan = new Loan();
-        updateLoanFromDTO(loan, loanDTO);
+        loan.setAmount(loanDTO.getAmount());
+        loan.setInterestRate(loanDTO.getInterestRate());
+        loan.setTerm(loanDTO.getTerm());
+        loan.setStatus(loanDTO.getStatus());
         loan.setUser(user);
-        return convertToDTO(loanRepository.save(loan));
+        
+        Loan savedLoan = loanRepository.save(loan);
+        return convertToDTO(savedLoan);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public LoanDTO getLoanById(Long id) {
-        return loanRepository.findById(id)
-                .map(this::convertToDTO)
-                .orElseThrow(() -> new EntityNotFoundException("Loan not found with id: " + id));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<LoanDTO> getAllLoans() {
         return loanRepository.findAll().stream()
                 .map(this::convertToDTO)
@@ -49,7 +49,13 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    public LoanDTO getLoanById(Long id) {
+        return loanRepository.findById(id)
+                .map(this::convertToDTO)
+                .orElseThrow(() -> new EntityNotFoundException("Loan not found with id: " + id));
+    }
+
+    @Override
     public List<LoanDTO> getLoansByUserId(Long userId) {
         return loanRepository.findByUserId(userId).stream()
                 .map(this::convertToDTO)
@@ -57,19 +63,22 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @Transactional
     public LoanDTO updateLoan(Long id, LoanDTO loanDTO) {
         Loan loan = loanRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Loan not found with id: " + id));
         
-        User user = userRepository.findById(loanDTO.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + loanDTO.getUserId()));
+        loan.setAmount(loanDTO.getAmount());
+        loan.setInterestRate(loanDTO.getInterestRate());
+        loan.setTerm(loanDTO.getTerm());
+        loan.setStatus(loanDTO.getStatus());
         
-        updateLoanFromDTO(loan, loanDTO);
-        loan.setUser(user);
-        return convertToDTO(loanRepository.save(loan));
+        Loan updatedLoan = loanRepository.save(loan);
+        return convertToDTO(updatedLoan);
     }
 
     @Override
+    @Transactional
     public void deleteLoan(Long id) {
         if (!loanRepository.existsById(id)) {
             throw new EntityNotFoundException("Loan not found with id: " + id);
@@ -78,30 +87,31 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public long countLoans() {
+    public Long countLoans() {
         return loanRepository.count();
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean existsById(Long id) {
         return loanRepository.existsById(id);
     }
 
     @Override
-    public void transferLoans(String fromUsername, String toUsername) {
-        User fromUser = userRepository.findByUsername(fromUsername)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + fromUsername));
+    @Transactional
+    public void transferLoans(LoanTransferDTO transferDTO) {
+        User fromUser = userRepository.findByUsername(transferDTO.getFromUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Source user not found with username: " + transferDTO.getFromUsername()));
         
-        User toUser = userRepository.findByUsername(toUsername)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + toUsername));
-
-        List<Loan> loans = loanRepository.findByUserId(fromUser.getId());
-        for (Loan loan : loans) {
-            loan.setUser(toUser);
+        User toUser = userRepository.findByUsername(transferDTO.getToUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Target user not found with username: " + transferDTO.getToUsername()));
+        
+        List<Loan> fromUserLoans = loanRepository.findByUserId(fromUser.getId());
+        if (fromUserLoans.isEmpty()) {
+            throw new IllegalStateException("No loans found for user: " + transferDTO.getFromUsername());
         }
-        loanRepository.saveAll(loans);
+        
+        fromUserLoans.forEach(loan -> loan.setUser(toUser));
+        loanRepository.saveAll(fromUserLoans);
     }
 
     private LoanDTO convertToDTO(Loan loan) {
@@ -114,15 +124,8 @@ public class LoanServiceImpl implements LoanService {
         dto.setStartDate(loan.getStartDate());
         dto.setStatus(loan.getStatus());
         dto.setUserId(loan.getUser().getId());
+        dto.setUsername(loan.getUser().getUsername());
+        dto.setEmail(loan.getUser().getEmail());
         return dto;
-    }
-
-    private void updateLoanFromDTO(Loan loan, LoanDTO dto) {
-        loan.setLoanNumber(dto.getLoanNumber());
-        loan.setAmount(dto.getAmount());
-        loan.setInterestRate(dto.getInterestRate());
-        loan.setTerm(dto.getTerm());
-        loan.setStartDate(dto.getStartDate());
-        loan.setStatus(dto.getStatus());
     }
 } 
