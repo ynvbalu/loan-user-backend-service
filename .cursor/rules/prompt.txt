@@ -1,0 +1,11 @@
+I want to generate springboot microservice using java 21 for loan user management,
+ use inmoemory database, and provide swagger ui also.
+ users can be assigned to multiple loans
+ I need apis for adding users, adding loans, all CRUD operations for users and loans, 
+ finding user, count of users, count of loans, check loan exists
+ Api for if ask for transfer loans (example username: naga to pavan) then loans should updated.
+ create 10 users and 10 loans for each user.
+ username can be linked to loans.
+ include some users with OOO status in the data.
+ need an api for check user is OOO or not as well.
+ check user exists also.
