@@ -10,4 +10,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     List<Loan> findByUserId(Long userId);
     boolean existsByLoanNumber(String loanNumber);
     long count();
+    List<Loan> findByUserUsernameIgnoreCase(String username);
+    boolean existsByUserUsernameIgnoreCase(String username);
 } 

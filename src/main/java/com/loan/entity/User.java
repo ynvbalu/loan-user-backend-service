@@ -41,4 +41,12 @@ public class User {
     protected void onCreate() {
         creationDate = LocalDateTime.now();
     }
+
+    public boolean isOooStatus() {
+        return oooStatus;
+    }
+
+    public void setOooStatus(boolean oooStatus) {
+        this.oooStatus = oooStatus;
+    }
 } 

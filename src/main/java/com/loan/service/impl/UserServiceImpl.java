@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserDTO getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
+        return userRepository.findByUsernameIgnoreCase(username)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
     }
@@ -88,15 +88,15 @@ public class UserServiceImpl implements UserService {
     public boolean isUserOOO(Long id) {
         return userRepository.findById(id)
                 .map(User::isOooStatus)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+                .orElse(false);
     }
 
     @Override
     @Transactional(readOnly = true)
     public boolean isUserOOOByUsername(String username) {
-        return userRepository.findByUsername(username)
+        return userRepository.findByUsernameIgnoreCase(username)
                 .map(User::isOooStatus)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+                .orElse(false);
     }
 
     private UserDTO convertToDTO(User user) {

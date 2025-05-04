@@ -63,10 +63,10 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LoanDTO> getLoansByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
-        return loanRepository.findByUserId(user.getId()).stream()
+        return loanRepository.findByUserUsernameIgnoreCase(username)
+                .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -108,10 +108,10 @@ public class LoanServiceImpl implements LoanService {
     @Override
     @Transactional
     public void transferLoans(LoanTransferDTO transferDTO) {
-        User fromUser = userRepository.findByUsername(transferDTO.getFromUsername())
+        User fromUser = userRepository.findByUsernameIgnoreCase(transferDTO.getFromUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Source user not found with username: " + transferDTO.getFromUsername()));
         
-        User toUser = userRepository.findByUsername(transferDTO.getToUsername())
+        User toUser = userRepository.findByUsernameIgnoreCase(transferDTO.getToUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Target user not found with username: " + transferDTO.getToUsername()));
         
         List<Loan> loansToTransfer;
@@ -135,6 +135,12 @@ public class LoanServiceImpl implements LoanService {
         
         loansToTransfer.forEach(loan -> loan.setUser(toUser));
         loanRepository.saveAll(loansToTransfer);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasLoans(String username) {
+        return loanRepository.existsByUserUsernameIgnoreCase(username);
     }
 
     private LoanDTO convertToDTO(Loan loan) {

@@ -23,16 +23,18 @@ public class DataInitializer {
     @Autowired
     private LoanRepository loanRepository;
 
+    private int loanCounter = 1;
+
     @PostConstruct
     public void init() {
         // Create sample users
         List<User> users = new ArrayList<>();
         
-        User johnSmith = createUser("john.smith", "John", "Smith", "john.smith@example.com", "+1-555-0123", false);
-        User sarahJohnson = createUser("sarah.j", "Sarah", "Johnson", "sarah.j@example.com", "+1-555-0124", true);
-        User michaelChen = createUser("mchen", "Michael", "Chen", "michael.chen@example.com", "+1-555-0125", false);
-        User emilyRodriguez = createUser("emily.r", "Emily", "Rodriguez", "emily.r@example.com", "+1-555-0126", false);
-        User davidKim = createUser("dkim", "David", "Kim", "david.kim@example.com", "+1-555-0127", true);
+        User johnSmith = createUser("R566101", "John", "Smith", "john.smith@example.com", "+1-555-0123", false);
+        User sarahJohnson = createUser("X234567", "Sarah", "Johnson", "sarah.j@example.com", "+1-555-0124", true);
+        User michaelChen = createUser("Y789012", "Michael", "Chen", "michael.chen@example.com", "+1-555-0125", false);
+        User emilyRodriguez = createUser("Z345678", "Emily", "Rodriguez", "emily.r@example.com", "+1-555-0126", false);
+        User davidKim = createUser("W901234", "David", "Kim", "david.kim@example.com", "+1-555-0127", true);
         
         users.add(johnSmith);
         users.add(sarahJohnson);
@@ -87,7 +89,7 @@ public class DataInitializer {
     
     private Loan createLoan(User user, String amount, String interestRate, Integer term, Loan.LoanStatus status) {
         Loan loan = new Loan();
-        loan.setLoanNumber("LOAN-" + UUID.randomUUID().toString().substring(0, 8) + "-" + user.getUsername());
+        loan.setLoanNumber("Loan-" + loanCounter++);
         loan.setAmount(new BigDecimal(amount));
         loan.setInterestRate(new BigDecimal(interestRate));
         loan.setTerm(term);

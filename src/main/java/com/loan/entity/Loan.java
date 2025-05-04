@@ -47,7 +47,7 @@ public class Loan {
     }
 
     private String generateLoanNumber() {
-        return "LOAN-" + System.currentTimeMillis();
+        return "Loan-" + System.currentTimeMillis() % 1000;
     }
 
     public enum LoanStatus {

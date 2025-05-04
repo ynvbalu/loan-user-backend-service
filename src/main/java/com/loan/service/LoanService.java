@@ -15,4 +15,5 @@ public interface LoanService {
     Long countLoans();
     boolean existsById(Long id);
     void transferLoans(LoanTransferDTO transferDTO);
+    boolean hasLoans(String username);
 } 
