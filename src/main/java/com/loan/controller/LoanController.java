@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+
+import com.loan.entity.Loan.LoanStatus;
 
 @RestController
 @RequestMapping("/api/loans")
@@ -42,6 +45,36 @@ public class LoanController {
     @Operation(summary = "Get all loans for a specific user")
     public ResponseEntity<List<LoanDTO>> getLoansByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(loanService.getLoansByUserId(userId));
+    }
+
+    @GetMapping("/user/{userId}/has-loans")
+    @Operation(summary = "Check if a user has any loans")
+    public ResponseEntity<Map<String, Object>> hasLoans(@PathVariable Long userId) {
+        List<LoanDTO> loans = loanService.getLoansByUserId(userId);
+        return ResponseEntity.ok(Map.of(
+            "userId", userId,
+            "hasLoans", !loans.isEmpty(),
+            "loanCount", loans.size(),
+            "activeLoans", loans.stream().filter(loan -> "ACTIVE".equals(loan.getStatus())).count(),
+            "pendingLoans", loans.stream().filter(loan -> "PENDING".equals(loan.getStatus())).count()
+        ));
+    }
+
+    @GetMapping("/username/{username}")
+    @Operation(summary = "Get all loans for a user by username")
+    public ResponseEntity<List<LoanDTO>> getLoansByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(loanService.getLoansByUsername(username));
+    }
+
+    @GetMapping("/username/{username}/has-loans")
+    @Operation(summary = "Check if a user has any loans by username")
+    public ResponseEntity<Map<String, Object>> hasLoansByUsername(@PathVariable String username) {
+        List<LoanDTO> loans = loanService.getLoansByUsername(username);
+        return ResponseEntity.ok(Map.of(
+            "username", username,
+            "hasLoans", !loans.isEmpty(),
+            "loanCount", loans.size()
+        ));
     }
 
     @PutMapping("/{id}")

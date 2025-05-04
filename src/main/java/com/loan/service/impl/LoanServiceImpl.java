@@ -63,6 +63,15 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    public List<LoanDTO> getLoansByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+        return loanRepository.findByUserId(user.getId()).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public LoanDTO updateLoan(Long id, LoanDTO loanDTO) {
         Loan loan = loanRepository.findById(id)

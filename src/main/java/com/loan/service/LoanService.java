@@ -9,6 +9,7 @@ public interface LoanService {
     LoanDTO getLoanById(Long id);
     List<LoanDTO> getAllLoans();
     List<LoanDTO> getLoansByUserId(Long userId);
+    List<LoanDTO> getLoansByUsername(String username);
     LoanDTO updateLoan(Long id, LoanDTO loanDTO);
     void deleteLoan(Long id);
     Long countLoans();
