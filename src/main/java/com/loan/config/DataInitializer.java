@@ -9,11 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.UUID;
 
 @Component
 public class DataInitializer {
@@ -24,39 +23,77 @@ public class DataInitializer {
     @Autowired
     private LoanRepository loanRepository;
 
-    private final Random random = new Random();
-
     @PostConstruct
     public void init() {
         // Create sample users
         List<User> users = new ArrayList<>();
-        for (int i = 1; i <= 10; i++) {
-            User user = new User();
-            user.setUsername("user" + i);
-            user.setFirstName("First" + i);
-            user.setLastName("Last" + i);
-            user.setEmail("user" + i + "@example.com");
-            user.setPhoneNumber("123-456-789" + i);
-            user.setOooStatus(i % 3 == 0); // Every third user is OOO
-            users.add(user);
-        }
+        
+        User johnSmith = createUser("john.smith", "John", "Smith", "john.smith@example.com", "+1-555-0123", false);
+        User sarahJohnson = createUser("sarah.j", "Sarah", "Johnson", "sarah.j@example.com", "+1-555-0124", true);
+        User michaelChen = createUser("mchen", "Michael", "Chen", "michael.chen@example.com", "+1-555-0125", false);
+        User emilyRodriguez = createUser("emily.r", "Emily", "Rodriguez", "emily.r@example.com", "+1-555-0126", false);
+        User davidKim = createUser("dkim", "David", "Kim", "david.kim@example.com", "+1-555-0127", true);
+        
+        users.add(johnSmith);
+        users.add(sarahJohnson);
+        users.add(michaelChen);
+        users.add(emilyRodriguez);
+        users.add(davidKim);
+        
         userRepository.saveAll(users);
 
         // Create sample loans
         List<Loan> loans = new ArrayList<>();
-        for (User user : users) {
-            for (int i = 1; i <= 10; i++) {
-                Loan loan = new Loan();
-                loan.setLoanNumber("LOAN-" + user.getId() + "-" + i);
-                loan.setAmount(new BigDecimal(random.nextDouble() * 100000).setScale(2, RoundingMode.HALF_UP));
-                loan.setInterestRate(new BigDecimal(random.nextDouble() * 10).setScale(2, RoundingMode.HALF_UP));
-                loan.setTerm(random.nextInt(36) + 12); // 12-48 months
-                loan.setStartDate(LocalDateTime.now().minusMonths(random.nextInt(24)));
-                loan.setStatus(Loan.LoanStatus.values()[random.nextInt(Loan.LoanStatus.values().length)]);
-                loan.setUser(user);
-                loans.add(loan);
-            }
-        }
+        
+        // Create three loans for John Smith
+        loans.add(createLoan(johnSmith, "25000.00", "4.5", 36, Loan.LoanStatus.ACTIVE));
+        loans.add(createLoan(johnSmith, "15000.00", "5.2", 24, Loan.LoanStatus.ACTIVE));
+        loans.add(createLoan(johnSmith, "35000.00", "4.8", 48, Loan.LoanStatus.PENDING));
+        
+        // Create three loans for Sarah Johnson
+        loans.add(createLoan(sarahJohnson, "35000.00", "3.8", 48, Loan.LoanStatus.ACTIVE));
+        loans.add(createLoan(sarahJohnson, "20000.00", "4.2", 36, Loan.LoanStatus.PENDING));
+        loans.add(createLoan(sarahJohnson, "45000.00", "4.0", 60, Loan.LoanStatus.ACTIVE));
+        
+        // Create three loans for Michael Chen
+        loans.add(createLoan(michaelChen, "45000.00", "4.0", 60, Loan.LoanStatus.ACTIVE));
+        loans.add(createLoan(michaelChen, "28000.00", "4.5", 36, Loan.LoanStatus.ACTIVE));
+        loans.add(createLoan(michaelChen, "32000.00", "4.2", 48, Loan.LoanStatus.PENDING));
+        
+        // Create three loans for Emily Rodriguez
+        loans.add(createLoan(emilyRodriguez, "30000.00", "4.8", 36, Loan.LoanStatus.ACTIVE));
+        loans.add(createLoan(emilyRodriguez, "22000.00", "4.3", 24, Loan.LoanStatus.ACTIVE));
+        loans.add(createLoan(emilyRodriguez, "40000.00", "3.9", 48, Loan.LoanStatus.PENDING));
+        
+        // Create three loans for David Kim
+        loans.add(createLoan(davidKim, "50000.00", "3.5", 48, Loan.LoanStatus.ACTIVE));
+        loans.add(createLoan(davidKim, "38000.00", "4.1", 36, Loan.LoanStatus.ACTIVE));
+        loans.add(createLoan(davidKim, "42000.00", "3.8", 60, Loan.LoanStatus.PENDING));
+        
         loanRepository.saveAll(loans);
+    }
+    
+    private User createUser(String username, String firstName, String lastName, String email, String phoneNumber, boolean oooStatus) {
+        User user = new User();
+        user.setUsername(username);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email);
+        user.setPhoneNumber(phoneNumber);
+        user.setOooStatus(oooStatus);
+        user.setCreationDate(LocalDateTime.now());
+        return user;
+    }
+    
+    private Loan createLoan(User user, String amount, String interestRate, Integer term, Loan.LoanStatus status) {
+        Loan loan = new Loan();
+        loan.setLoanNumber("LOAN-" + UUID.randomUUID().toString().substring(0, 8) + "-" + user.getUsername());
+        loan.setAmount(new BigDecimal(amount));
+        loan.setInterestRate(new BigDecimal(interestRate));
+        loan.setTerm(term);
+        loan.setStatus(status);
+        loan.setStartDate(LocalDateTime.now());
+        loan.setUser(user);
+        return loan;
     }
 } 
