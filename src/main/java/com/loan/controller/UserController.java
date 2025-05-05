@@ -1,6 +1,7 @@
 package com.loan.controller;
 
 import com.loan.dto.UserDTO;
+import com.loan.dto.OooStatusRequest;
 import com.loan.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -83,5 +84,14 @@ public class UserController {
     @Operation(summary = "Check if user is OOO by username")
     public ResponseEntity<Boolean> isUserOOOByUsername(@PathVariable String username) {
         return ResponseEntity.ok(userService.isUserOOOByUsername(username));
+    }
+
+    @PutMapping("/username/{username}/ooo")
+    @Operation(summary = "Update user's OOO status")
+    public ResponseEntity<UserDTO> updateOooStatus(
+            @PathVariable String username,
+            @Valid @RequestBody OooStatusRequest request) {
+        UserDTO updatedUser = userService.updateOooStatus(username, request);
+        return ResponseEntity.ok(updatedUser);
     }
 } 

@@ -1,6 +1,7 @@
 package com.loan.service.impl;
 
 import com.loan.dto.UserDTO;
+import com.loan.dto.OooStatusRequest;
 import com.loan.entity.User;
 import com.loan.repository.UserRepository;
 import com.loan.service.UserService;
@@ -80,7 +81,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
+        return userRepository.existsByUsernameIgnoreCase(username);
     }
 
     @Override
@@ -97,6 +98,16 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsernameIgnoreCase(username)
                 .map(User::isOooStatus)
                 .orElse(false);
+    }
+
+    @Override
+    public UserDTO updateOooStatus(String username, OooStatusRequest request) {
+        User user = userRepository.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+        
+        user.setOooStatus(request.isOooStatus());
+        User updatedUser = userRepository.save(user);
+        return convertToDTO(updatedUser);
     }
 
     private UserDTO convertToDTO(User user) {

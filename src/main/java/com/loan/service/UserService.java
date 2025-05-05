@@ -1,6 +1,7 @@
 package com.loan.service;
 
 import com.loan.dto.UserDTO;
+import com.loan.dto.OooStatusRequest;
 import java.util.List;
 
 public interface UserService {
@@ -15,4 +16,5 @@ public interface UserService {
     boolean existsByUsername(String username);
     boolean isUserOOO(Long id);
     boolean isUserOOOByUsername(String username);
+    UserDTO updateOooStatus(String username, OooStatusRequest request);
 } 
